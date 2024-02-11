@@ -644,12 +644,22 @@ class TestEngine:
             with pytest.warns(UserWarning, match=r"Data iterator can not provide data anymore"):
                 self._test_check_triggered_events(limited_data_iterator(), max_epochs=3, epoch_length=100)
 
-        def limited_data_iterator():
-            self._test_check_triggered_events(limited_data_iterator(), max_epochs=3, epoch_length=75)
-
         with pytest.raises(AssertionError):
             with pytest.warns(UserWarning, match=r"Data iterator can not provide data anymore"):
-                self._test_check_triggered_events(limited_data_iterator(), max_epochs=1, epoch_length=101)
+                self._test_check_triggered_events(limited_data_iterator(), max_epochs=3, epoch_length=75)
+
+        with pytest.raises(AssertionError):
+            # Removed unnecessary loop
+            # with pytest.warns(UserWarning, match=r"Data iterator can not provide data anymore"):
+            self._test_check_triggered_events(limited_data_iterator(), max_epochs=1, epoch_length=101)
+
+        # Test when the iterator is exactly exhausted at the end of processing
+        self._test_check_triggered_events(limited_data_iterator(), max_epochs=2, epoch_length=50, exp_iter_stops=0)
+
+        # Test for partial completion of an epoch when data runs out
+        with pytest.raises(AssertionError):
+            # with pytest.warns(UserWarning, match=r"Data iterator can not provide data anymore"):
+            self._test_check_triggered_events(limited_data_iterator(), max_epochs=5, epoch_length=25)
 
     def test_run_check_triggered_events_on_iterator(self):
         self._test_run_check_triggered_events_on_iterator()
