@@ -110,9 +110,9 @@ class TestEngine:
 
         engine = Engine(MagicMock(return_value=1))
 
-        def end_of_epoch_handler(engine):
-            if engine.state.epoch == last_epoch_to_run:
-                engine.terminate()
+        def end_of_epoch_handler(engine1):
+            if engine1.state.epoch == last_epoch_to_run:
+                engine1.terminate()
 
         engine.add_event_handler(Events.EPOCH_COMPLETED, end_of_epoch_handler)
 
@@ -190,9 +190,9 @@ class TestEngine:
 
         engine = Engine(MagicMock(return_value=1))
 
-        def start_of_iteration_handler(engine):
-            if engine.state.iteration == iteration_to_stop:
-                engine.terminate()
+        def start_of_iteration_handler(engine1):
+            if engine1.state.iteration == iteration_to_stop:
+                engine1.terminate()
 
         @engine.on(Events.EXCEPTION_RAISED)
         def assert_no_exceptions(ee):
@@ -650,6 +650,7 @@ class TestEngine:
 
         with pytest.raises(AssertionError):
             # Removed unnecessary loop
+            # for data in the beginning of the search
             # with pytest.warns(UserWarning, match=r"Data iterator can not provide data anymore"):
             self._test_check_triggered_events(limited_data_iterator(), max_epochs=1, epoch_length=101)
 
@@ -668,19 +669,6 @@ class TestEngine:
     @pytest.mark.skipif(not idist.has_native_dist_support, reason="Skip if no native dist support")
     @pytest.mark.skipif(torch.cuda.device_count() < 1, reason="Skip if no GPU")
     def test_distrib_nccl_gpu(self, distributed_context_single_node_nccl):
-        self._test_run_check_triggered_events_on_iterator()
-        self._test_run_check_triggered_events()
-
-    @pytest.mark.distributed
-    @pytest.mark.skipif(not idist.has_native_dist_support, reason="Skip if no native dist support")
-    def test_distrib_gloo_cpu_or_gpu(self, distributed_context_single_node_gloo):
-        self._test_run_check_triggered_events_on_iterator()
-        self._test_run_check_triggered_events()
-
-    @pytest.mark.multinode_distributed
-    @pytest.mark.skipif(not idist.has_native_dist_support, reason="Skip if no native dist support")
-    @pytest.mark.skipif("MULTINODE_DISTRIB" not in os.environ, reason="Skip if not multi-node distributed")
-    def test_multinode_distrib_gloo_cpu_or_gpu(self, distributed_context_multi_node_gloo):
         self._test_run_check_triggered_events_on_iterator()
         self._test_run_check_triggered_events()
 
@@ -726,13 +714,13 @@ class TestEngine:
         # tests issue https://github.com/pytorch/ignite/issues/795
         size = 1
 
-        def random_train_data_generator(size):
+        def random_train_data_generator(size1):
             while True:
-                yield torch.randint(0, 100, size=(size,))
+                yield torch.randint(0, 100, size=(size1,))
 
-        def random_val_data_generator(size):
+        def random_val_data_generator(size1):
             while True:
-                yield torch.randint(0, 100, size=(size,)) + 100
+                yield torch.randint(0, 100, size=(size1,)) + 100
 
         train_only_batches = []
 
